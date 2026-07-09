@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Hub - 大模型导航</title>
+<style>
+  :root {
+    --bg: #060912;
+    --bg-card: rgba(18, 24, 48, 0.7);
+    --bg-hover: rgba(26, 34, 68, 0.85);
+    --accent: #6366f1;
+    --accent2: #8b5cf6;
+    --accent3: #06b6d4;
+    --accent4: #ec4899;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: rgba(255,255,255,0.06);
+    --shadow: 0 8px 40px rgba(0,0,0,0.5);
+    --radius: 18px;
+    --glow: 0 0 30px rgba(99,102,241,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== Animated Background ===== */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: -2;
+    background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(236,72,153,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 60% at 20% 70%, rgba(6,182,212,0.05) 0%, transparent 60%);
+  }
+
+  /* Grid dots overlay */
+  .bg-dots {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: linear-gradient(transparent 0%, rgba(0,0,0,0.4) 20%, rgba(0,0,0,0.4) 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(transparent 0%, rgba(0,0,0,0.4) 20%, rgba(0,0,0,0.4) 80%, transparent 100%);
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 100px 20px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -300px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.08) 40%, transparent 70%);
+    pointer-events: none;
+    animation: heroPulse 6s ease-in-out infinite;
+  }
+  @keyframes heroPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+    50% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a5b4fc;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.2);
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+  }
+  .hero h1 {
+    font-size: 56px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 30%, #8b5cf6 60%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    letter-spacing: -2px;
+    line-height: 1.1;
+  }
+  .hero p {
+    color: var(--text-muted);
+    font-size: 19px;
+    max-width: 580px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+
+  /* Search */
+  .search-wrap {
+    max-width: 580px;
+    margin: 0 auto 44px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 18px 24px 18px 56px;
+    border-radius: 60px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(18, 24, 48, 0.6);
+    backdrop-filter: blur(20px);
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12), 0 0 40px rgba(99,102,241,0.08);
+    background: rgba(18, 24, 48, 0.85);
+  }
+  .search-wrap input::placeholder { color: var(--text-muted); }
+  .search-wrap svg {
+    position: absolute;
+    left: 22px; top: 50%;
+    transform: translateY(-50%);
+    width: 20px; height: 20px;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.3s;
+  }
+  .search-wrap input:focus ~ svg { color: var(--accent); }
+
+  /* Filter tags */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px 56px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .filter-btn {
+    padding: 10px 22px;
+    border-radius: 50px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(10px);
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(99,102,241,0.08);
+    box-shadow: 0 0 20px rgba(99,102,241,0.1);
+  }
+  .filter-btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Cards grid */
+  .container {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+  .container::before {
+    content: '';
+    display: block;
+    width: 80px; height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent4));
+    margin: 0 auto 48px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 22px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(236,72,153,0.04));
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .card:hover::after { opacity: 1; }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.15);
+    border-color: rgba(99,102,241,0.2);
+  }
+  .card.hidden { display: none; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+  }
+  .card-icon {
+    width: 52px; height: 52px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .card-icon::after {
+    content: '';
+    position: absolute;
+    inset: -2px; border-radius: 17px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -1;
+  }
+  .card:hover .card-icon::after {
+    opacity: 1;
+    background: var(--glow);
+  }
+  .card-title-wrap { flex: 1; min-width: 0; }
+  .card-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .card-tag {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    opacity: 0.85;
+    letter-spacing: 0.3px;
+  }
+  .card-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.65;
+    margin-bottom: 16px;
+  }
+  .card-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .feature-tag {
+    padding: 5px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s;
+  }
+  .card:hover .feature-tag {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .card-arrow {
+    position: absolute;
+    top: 28px; right: 22px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(8px);
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  .card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+  }
+  .card-arrow svg { width: 14px; height: 14px; color: #fff; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 0.3px;
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 36px; }
+    .hero { padding: 60px 16px 30px; }
+    .hero p { font-size: 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .glossary-grid { grid-template-columns: 1fr !important; }
+  }
+
+  /* ===== Glossary ===== */
+  .glossary-section {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 20px 20px 80px;
+  }
+  .glossary-section::before {
+    content: '';
+    display: block;
+    width: 80px; height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    margin: 0 auto 48px;
+  }
+  .glossary-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .glossary-header h2 {
+    font-size: 36px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #06b6d4, #6366f1, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+  }
+  .glossary-header p {
+    color: var(--text-muted);
+    font-size: 17px;
+  }
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .glossary-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+    padding: 28px;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .glossary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .glossary-card:hover {
+    background: var(--bg-hover);
+    border-color: rgba(6,182,212,0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+  }
+  .glossary-card:hover::before { opacity: 1; }
+  .glossary-card .term-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.3px;
+  }
+  .glossary-card .term-name::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    flex-shrink: 0;
+  }
+  .glossary-card:hover .term-name::before {
+    box-shadow: 0 0 12px var(--accent3);
+  }
+  .glossary-card .term-en {
+    font-size: 12px;
+    color: var(--accent3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    padding-left: 18px;
+  }
+  .glossary-card .term-meaning {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+  .glossary-card .term-usage {
+    background: rgba(6,182,212,0.06);
+    border-left: 3px solid var(--accent3);
+    padding: 12px 16px;
+    border-radius: 0 10px 10px 0;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    transition: all 0.3s;
+  }
+  .glossary-card:hover .term-usage {
+    background: rgba(6,182,212,0.1);
+    border-left-color: var(--accent);
+  }
+  .glossary-card .term-usage-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="bg-dots"></div>
+
+<section class="hero">
+  <div class="badge">2026 年 7 月更新</div>
+  <h1>AI Hub</h1>
+  <p>探索全球最强大的人工智能大模型，找到最适合你的AI助手</p>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" id="searchInput" placeholder="搜索模型名称、功能、公司...">
+  </div>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="chat">对话聊天</button>
+    <button class="filter-btn" data-filter="code">代码编程</button>
+    <button class="filter-btn" data-filter="image">绘画创作</button>
+    <button class="filter-btn" data-filter="video">视频生成</button>
+    <button class="filter-btn" data-filter="search">搜索问答</button>
+    <button class="filter-btn" data-filter="domestic">国产大模型</button>
+  </div>
+</section>
+
+<div class="container">
+  <div class="grid" id="cardGrid"></div>
+</div>
+
+<section class="glossary-section" id="glossary">
+  <div class="glossary-header">
+    <h2>AI 术语百科</h2>
+    <p>快速理解AI领域的核心概念，从入门到精通</p>
+  </div>
+  <div class="glossary-grid" id="glossaryGrid"></div>
+</section>
+
+<footer>
+  AI Hub - 大模型导航站 | 数据更新于 2026年7月
+</footer>
+
+<script>
+const models = [
+  {
+    name: "ChatGPT",
+    company: "OpenAI",
+    url: "https://chat.openai.com",
+    category: ["chat", "code"],
+    desc: "全球最知名的AI对话助手，GPT-5.5 Pro 版本综合能力顶尖，支持多模态理解和联网搜索。",
+    features: ["全能均衡", "多模态", "插件生态", "联网搜索"],
+    icon: "G",
+    color: "#10a37f"
+  },
+  {
+    name: "Claude",
+    company: "Anthropic",
+    url: "https://claude.ai",
+    category: ["chat", "code"],
+    desc: "以超长上下文和精准推理著称，Claude Fable 5 在代码开发和复杂分析任务中表现卓越。",
+    features: ["超长上下文", "代码专家", "安全可控", "推理精准"],
+    icon: "C",
+    color: "#d97757"
+  },
+  {
+    name: "Gemini",
+    company: "Google",
+    url: "https://gemini.google.com",
+    category: ["chat", "search"],
+    desc: "Google 原生多模态大模型，Gemini 3.5 Ultra 实现百万级上下文，与 Google 生态深度整合。",
+    features: ["百万上下文", "原生多模态", "Google生态", "实时搜索"],
+    icon: "G",
+    color: "#4285f4"
+  },
+  {
+    name: "Grok",
+    company: "xAI",
+    url: "https://grok.x.ai",
+    category: ["chat", "search"],
+    desc: "Elon Musk 旗下AI，Grok 4 拥有实时推特数据访问，风格犀利直接，擅长时事讨论和创意写作。",
+    features: ["实时数据", "推特集成", "风格独特", "创意写作"],
+    icon: "X",
+    color: "#1d9bf0"
+  },
+  {
+    name: "DeepSeek",
+    company: "深度求索",
+    url: "https://chat.deepseek.com",
+    category: ["chat", "code", "domestic"],
+    desc: "国产开源推理大模型标杆，DeepSeek-R1 推理能力碾压闭源模型，数学和代码能力尤为突出。",
+    features: ["开源免费", "推理超强", "数学专家", "代码生成"],
+    icon: "D",
+    color: "#4f46e5"
+  },
+  {
+    name: "豆包",
+    company: "字节跳动",
+    url: "https://www.doubao.com",
+    category: ["chat", "domestic"],
+    desc: "字节跳动旗下AI助手，语音识别和中文对话体验优秀，与抖音生态打通，内容创作能力强。",
+    features: ["语音交互", "中文优化", "抖音生态", "内容创作"],
+    icon: "豆",
+    color: "#3c8cff"
+  },
+  {
+    name: "Kimi",
+    company: "月之暗面",
+    url: "https://kimi.moonshot.cn",
+    category: ["chat", "domestic"],
+    desc: "以超长文本处理能力闻名，支持200万字上下文，擅长论文研读、资料整理和长文档分析。",
+    features: ["200万上下文", "长文档", "论文研读", "资料整理"],
+    icon: "K",
+    color: "#00a9ff"
+  },
+  {
+    name: "通义千问",
+    company: "阿里巴巴",
+    url: "https://tongyi.aliyun.com",
+    category: ["chat", "code", "domestic"],
+    desc: "阿里云旗舰大模型，Qwen3 在代码、数学和多语言方面表现优异，开源版本社区活跃。",
+    features: ["代码能力强", "多语言", "开源活跃", "阿里云生态"],
+    icon: "问",
+    color: "#ff6a00"
+  },
+  {
+    name: "文心一言",
+    company: "百度",
+    url: "https://yiyan.baidu.com",
+    category: ["chat", "search", "domestic"],
+    desc: "百度知识增强大模型，深度整合搜索能力，在中文知识问答和文学创作上有独特优势。",
+    features: ["搜索增强", "中文知识", "文学创作", "百度生态"],
+    icon: "文",
+    color: "#2932e1"
+  },
+  {
+    name: "讯飞星火",
+    company: "科大讯飞",
+    url: "https://xinghuo.xfyun.cn",
+    category: ["chat", "domestic"],
+    desc: "讯飞认知大模型，语音识别和合成能力业界领先，在教育、办公场景有深度优化。",
+    features: ["语音顶尖", "教育场景", "办公助手", "多语种"],
+    icon: "星",
+    color: "#c62f2f"
+  },
+  {
+    name: "Midjourney",
+    company: "Midjourney",
+    url: "https://www.midjourney.com",
+    category: ["image"],
+    desc: "全球最受欢迎的AI绘画工具，艺术风格独特，画面质量极高，是设计师和创意工作者的首选。",
+    features: ["艺术风格", "画面精美", "创意无限", "社区活跃"],
+    icon: "M",
+    color: "#1a1a2e"
+  },
+  {
+    name: "Stable Diffusion",
+    company: "Stability AI",
+    url: "https://stability.ai",
+    category: ["image"],
+    desc: "开源AI绘画模型的开创者，可本地部署，社区生态丰富，可控性强，适合技术用户深度定制。",
+    features: ["完全开源", "本地部署", "可控性强", "生态丰富"],
+    icon: "S",
+    color: "#7c3aed"
+  },
+  {
+    name: "DALL-E",
+    company: "OpenAI",
+    url: "https://openai.com/dall-e",
+    category: ["image"],
+    desc: "OpenAI 官方图像生成模型，与 ChatGPT 无缝集成，理解复杂提示词能力强，出图速度快。",
+    features: ["提示词理解", "ChatGPT集成", "出图快", "多风格"],
+    icon: "D",
+    color: "#10a37f"
+  },
+  {
+    name: "可灵",
+    company: "快手",
+    url: "https://kling.kuaishou.com",
+    category: ["video", "domestic"],
+    desc: "快手推出的AI视频生成模型，运动幅度大、物理规律遵循好，是国内视频生成的第一梯队。",
+    features: ["运动幅度大", "物理逼真", "国产领先", "运动控制"],
+    icon: "灵",
+    color: "#ff0050"
+  },
+  {
+    name: "Runway",
+    company: "Runway ML",
+    url: "https://runwayml.com",
+    category: ["video"],
+    desc: "专业级AI视频创作平台，Gen-3 模型在视频生成质量、可控性和编辑功能上处于行业前沿。",
+    features: ["专业视频", "编辑功能", "可控生成", "创意工具"],
+    icon: "R",
+    color: "#000000"
+  },
+  {
+    name: "Sora",
+    company: "OpenAI",
+    url: "https://openai.com/sora",
+    category: ["video"],
+    desc: "OpenAI 文本生成视频模型，可生成长达60秒的高质量视频，对物理世界理解深刻。",
+    features: ["60秒视频", "物理理解", "高质量", "文本驱动"],
+    icon: "S",
+    color: "#10a37f"
+  },
+  {
+    name: "Cursor",
+    company: "Anysphere",
+    url: "https://cursor.com",
+    category: ["code"],
+    desc: "AI 原生代码编辑器，内置 Claude 和 GPT 模型，代码补全、重构和调试体验极佳，开发者效率神器。",
+    features: ["代码补全", "智能重构", "多模型", "开发者首选"],
+    icon: "C",
+    color: "#000000"
+  },
+  {
+    name: "TRAE",
+    company: "字节跳动",
+    url: "https://www.trae.cn",
+    category: ["code", "domestic"],
+    desc: "字节跳动推出的AI编程工具，支持多语言开发，内置豆包大模型，代码生成和对话体验流畅。",
+    features: ["国产工具", "多语言", "代码生成", "对话流畅"],
+    icon: "T",
+    color: "#3c8cff"
+  }
+];
+
+const grid = document.getElementById('cardGrid');
+const searchInput = document.getElementById('searchInput');
+const filterBtns = document.querySelectorAll('.filter-btn');
+let currentFilter = 'all';
+
+function renderCards(items) {
+  grid.innerHTML = '';
+  items.forEach(m => {
+    const card = document.createElement('a');
+    card.className = 'card';
+    card.href = m.url;
+    card.target = '_blank';
+    card.rel = 'noopener';
+    card.innerHTML = `
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+      </div>
+      <div class="card-header">
+        <div class="card-icon" style="background:${m.color}20;color:${m.color};border:1px solid ${m.color}40">${m.icon}</div>
+        <div class="card-title-wrap">
+          <div class="card-title">${m.name}</div>
+          <span class="card-tag" style="background:${m.color}">${m.company}</span>
+        </div>
+      </div>
+      <div class="card-desc">${m.desc}</div>
+      <div class="card-features">
+        ${m.features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function filterCards() {
+  const query = searchInput.value.toLowerCase().trim();
+  const filtered = models.filter(m => {
+    const matchesFilter = currentFilter === 'all' || m.category.includes(currentFilter);
+    const matchesSearch = !query ||
+      m.name.toLowerCase().includes(query) ||
+      m.company.toLowerCase().includes(query) ||
+      m.desc.toLowerCase().includes(query) ||
+      m.features.some(f => f.toLowerCase().includes(query));
+    return matchesFilter && matchesSearch;
+  });
+  renderCards(filtered);
+}
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    filterCards();
+  });
+});
+
+searchInput.addEventListener('input', filterCards);
+
+renderCards(models);
+
+/* ===== AI Glossary ===== */
+const glossary = [
+  {
+    name: "智能体",
+    en: "Agent",
+    meaning: "能自主理解任务、拆解步骤、调用工具并完成目标的AI系统。不同于只能回答问题的聊天机器人，Agent能主动执行操作，如自动订票、整理资料、生成报告等。",
+    usage: "2026年Agent爆发，你可以用豆包、通义千问的Agent功能一句话搞定复杂任务，比如\"帮我订一杯半糖热奶茶送到公司\"，AI会自动调用地图、外卖App完成全流程。"
+  },
+  {
+    name: "氛围编程",
+    en: "Vibe Coding",
+    meaning: "由OpenAI联合创始人Andrej Karpathy提出的编程方式。开发者用自然语言描述需求，AI大模型自动生成代码，强调\"沉浸感觉\"而非手写每一行代码。",
+    usage: "打开Cursor或TRAE，直接说\"做一个番茄钟网页应用\"，AI会自动生成完整代码。你只需描述想法、审查结果、提出修改，适合零基础快速原型开发。"
+  },
+  {
+    name: "AI编程助手",
+    en: "Codex",
+    meaning: "OpenAI推出的编码代理（Coding Agent），集成代码生成、解释、调试、重构于一体。支持命令行、IDE插件和云端三种使用方式，能理解整个代码仓库的上下文。",
+    usage: "在VS Code安装Codex插件，选中一段有Bug的代码说\"修复这个错误\"，Codex会分析代码逻辑、定位问题并给出修复方案。非技术人员也能用它自动化处理文件和表单。"
+  },
+  {
+    name: "向量数据库",
+    en: "Vector Database",
+    meaning: "专门用于存储和检索高维向量（嵌入）的数据库。它将文本、图片等内容转化为数字向量，通过计算相似度来快速找到相关内容，是AI记忆和知识检索的基础设施。",
+    usage: "搭建一个公司知识库AI助手时，先把所有文档导入向量数据库。当员工提问时，系统先从数据库检索最相关的文档片段，再让大模型基于这些内容生成精准回答。"
+  },
+  {
+    name: "AI工作流",
+    en: "Workflow",
+    meaning: "将多个AI工具或处理步骤按顺序串联起来，形成一个自动化流程来完成复杂任务。比如：AI生成文案 → AI配图 → AI排版 → 自动发布。",
+    usage: "用TRAE或Coze搭建工作流：输入一个产品名称，第一步让AI写小红书文案，第二步让AI生成配图，第三步自动排版成笔记格式，全程无需人工干预。"
+  },
+  {
+    name: "检索增强生成",
+    en: "RAG",
+    meaning: "Retrieval-Augmented Generation 的缩写。让大模型在回答前先检索外部知识库，再基于检索到的内容生成回答，有效解决大模型\"胡说八道\"的问题。",
+    usage: "在ChatGPT或Claude中上传公司资料、论文、书籍作为知识库。提问时AI会先读这些资料，再给出基于事实的回答，比单纯依赖训练数据更可靠。"
+  },
+  {
+    name: "模型上下文协议",
+    en: "MCP",
+    meaning: "Model Context Protocol，由Anthropic推出的开放协议。它标准化了AI模型与外部工具、数据库、API之间的通信方式，让不同AI应用能无缝调用各种服务。",
+    usage: "在TRAE或Claude中配置MCP服务器，AI就能直接操作你的文件系统、查询数据库、调用高德地图API。不需要写代码，AI自己决定何时调用什么工具。"
+  },
+  {
+    name: "提示词工程",
+    en: "Prompt Engineering",
+    meaning: "设计和优化输入给AI的指令（Prompt），以获得更精准、更高质量的输出。好的提示词能大幅提升AI的表现，相当于和AI沟通的\"话术技巧\"。",
+    usage: "写提示词时遵循\"角色+背景+任务+格式+约束\"公式。例如：\"你是一位资深营销专家（角色），为一款大学生番茄钟App（背景）写3条朋友圈文案（任务），每条不超过50字（约束），风格轻松活泼（格式）。\""
+  },
+  {
+    name: "多模态",
+    en: "Multimodal",
+    meaning: "能同时理解和处理多种类型数据（文本、图像、音频、视频）的AI模型。传统模型只能处理文本，多模态模型可以\"看图说话\"\"听音写字\"。",
+    usage: "上传一张产品海报给ChatGPT或Gemini，让它分析设计风格、提取文案、给出优化建议。或者上传一段会议录音，让AI自动生成文字纪要并提炼行动项。"
+  },
+  {
+    name: "幻觉",
+    en: "Hallucination",
+    meaning: "AI生成看似合理、语法正确，但实际上不正确、虚假或无法验证的信息。这是大模型的固有缺陷，因为它本质上是基于概率\"预测\"下一个词，而非真正\"理解\"事实。",
+    usage: "用AI写论文或查资料时，一定要人工核实关键数据和引用来源。建议开启联网搜索功能（如ChatGPT的Browse模式），或结合RAG技术让AI基于可靠资料回答。"
+  },
+  {
+    name: "微调",
+    en: "Fine-tuning",
+    meaning: "在预训练大模型的基础上，用特定领域的数据进一步训练，使模型更擅长某一类任务。相当于给通用AI\"补课\"，让它变成某个领域的专家。",
+    usage: "如果你需要AI帮你批量生成医疗领域文案，可以用1000条医疗文案数据对GPT或通义千问进行微调。微调后的模型会比通用模型更懂医疗术语和行业表达习惯。"
+  },
+  {
+    name: "Token",
+    en: "Token",
+    meaning: "大模型处理文本的最小单位，也是计费的基本单位。一个Token大约对应1-2个汉字或0.75个英文单词。上下文长度、输入输出都按Token计算。",
+    usage: "ChatGPT的128K上下文意味着它能一次处理约9万字的中文内容。使用AI时注意控制输入长度，长文档可以先分段处理，避免超出Token上限导致内容被截断。"
+  }
+];
+
+const glossaryGrid = document.getElementById('glossaryGrid');
+
+function renderGlossary(items) {
+  glossaryGrid.innerHTML = '';
+  items.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'glossary-card';
+    card.innerHTML = `
+      <div class="term-name">${t.name}</div>
+      <div class="term-en">${t.en}</div>
+      <div class="term-meaning">${t.meaning}</div>
+      <div class="term-usage">
+        <div class="term-usage-label">如何使用</div>
+        ${t.usage}
+      </div>
+    `;
+    glossaryGrid.appendChild(card);
+  });
+}
+
+// 让搜索也匹配术语
+searchInput.addEventListener('input', () => {
+  filterCards();
+  const query = searchInput.value.toLowerCase().trim();
+  const filteredGlossary = !query ? glossary : glossary.filter(t =>
+    t.name.includes(query) ||
+    t.en.toLowerCase().includes(query) ||
+    t.meaning.toLowerCase().includes(query) ||
+    t.usage.toLowerCase().includes(query)
+  );
+  renderGlossary(filteredGlossary);
+});
+
+renderGlossary(glossary);
+</script>
+</body>
+</html>
