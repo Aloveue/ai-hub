@@ -467,6 +467,167 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes borderGlow {
+    0%, 100% { border-color: rgba(99,102,241,0.1); }
+    50% { border-color: rgba(99,102,241,0.35); }
+  }
+
+  /* Reveal system */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* Hero entrance */
+  .hero .badge {
+    animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  }
+  .hero h1 {
+    animation: fadeInScale 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  }
+  .hero p {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+  }
+  .search-wrap {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  }
+  .filters {
+    animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both;
+  }
+
+  /* Card stagger animation */
+  .card {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.4s ease,
+                box-shadow 0.4s ease,
+                border-color 0.4s ease;
+  }
+  .card.card-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Card hover enhanced */
+  .card:hover .card-icon {
+    animation: float 2s ease-in-out infinite;
+  }
+  .card:hover .feature-tag {
+    border-color: rgba(99,102,241,0.2);
+    background: rgba(99,102,241,0.06);
+    color: var(--text);
+  }
+
+  /* Glossary card stagger */
+  .glossary-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.4s ease,
+                border-color 0.4s ease;
+  }
+  .glossary-card.glossary-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Container line shimmer */
+  .container::before {
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .glossary-section::before {
+    background: linear-gradient(90deg, transparent, var(--accent3), var(--accent), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Filter button click ripple */
+  .filter-btn {
+    position: relative;
+    overflow: hidden;
+  }
+  .filter-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--x, 50%) rgba(255,255,255,0.2), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .filter-btn:active::after {
+    opacity: 1;
+  }
+
+  /* Hero title gradient animation */
+  .hero h1 {
+    background-size: 200% 200%;
+    animation: fadeInScale 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both, gradientShift 8s ease infinite 1.2s;
+  }
+
+  /* Badge pulse border */
+  .hero .badge {
+    animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both, borderGlow 3s ease-in-out infinite 1s;
+  }
+
+  /* Search input focus glow ring */
+  .search-wrap input:focus {
+    animation: none;
+  }
+
+  /* Footer fade in */
+  footer {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  footer.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 </style>
 </head>
 <body>
@@ -699,12 +860,13 @@ let currentFilter = 'all';
 
 function renderCards(items) {
   grid.innerHTML = '';
-  items.forEach(m => {
+  items.forEach((m, i) => {
     const card = document.createElement('a');
     card.className = 'card';
     card.href = m.url;
     card.target = '_blank';
     card.rel = 'noopener';
+    card.style.transitionDelay = `${i * 0.06}s`;
     card.innerHTML = `
       <div class="card-arrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
@@ -722,6 +884,31 @@ function renderCards(items) {
       </div>
     `;
     grid.appendChild(card);
+  });
+  // Trigger card visibility on scroll with IntersectionObserver
+  requestAnimationFrame(() => {
+    const visibleCards = document.querySelectorAll('.card:not(.hidden)');
+    // Immediately show cards already in viewport
+    visibleCards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 50) {
+        card.classList.add('card-visible');
+      }
+    });
+    // Observe remaining cards for scroll trigger
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('card-visible');
+          cardObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+    visibleCards.forEach(card => {
+      if (!card.classList.contains('card-visible')) {
+        cardObserver.observe(card);
+      }
+    });
   });
 }
 
@@ -832,9 +1019,10 @@ const glossaryGrid = document.getElementById('glossaryGrid');
 
 function renderGlossary(items) {
   glossaryGrid.innerHTML = '';
-  items.forEach(t => {
+  items.forEach((t, i) => {
     const card = document.createElement('div');
     card.className = 'glossary-card';
+    card.style.transitionDelay = `${i * 0.07}s`;
     card.innerHTML = `
       <div class="term-name">${t.name}</div>
       <div class="term-en">${t.en}</div>
@@ -845,6 +1033,31 @@ function renderGlossary(items) {
       </div>
     `;
     glossaryGrid.appendChild(card);
+  });
+  // Trigger glossary card visibility with staggered animation
+  requestAnimationFrame(() => {
+    const glossaryCards = document.querySelectorAll('.glossary-card');
+    // Immediately show cards already in viewport
+    glossaryCards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 50) {
+        card.classList.add('glossary-visible');
+      }
+    });
+    // Observe remaining for scroll trigger
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('glossary-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+    glossaryCards.forEach(card => {
+      if (!card.classList.contains('glossary-visible')) {
+        observer.observe(card);
+      }
+    });
   });
 }
 
@@ -862,6 +1075,42 @@ searchInput.addEventListener('input', () => {
 });
 
 renderGlossary(glossary);
+
+/* ===== Global Scroll Animations ===== */
+// Footer fade in on scroll
+const footer = document.querySelector('footer');
+const footerObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      footerObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.2 });
+footerObserver.observe(footer);
+
+// Glossary header reveal animation
+const glossaryHeader = document.querySelector('.glossary-header');
+if (glossaryHeader) {
+  glossaryHeader.classList.add('reveal');
+  const headerObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        headerObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  headerObserver.observe(glossaryHeader);
+}
+
+// Filter button ripple effect
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('pointerdown', (e) => {
+    const rect = btn.getBoundingClientRect();
+    btn.style.setProperty('--x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+  });
+});
 </script>
 </body>
 </html>
